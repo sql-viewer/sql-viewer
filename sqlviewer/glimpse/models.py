@@ -113,12 +113,12 @@ class ForeignKey(UUIDModel):
             "id": str(self.id),
             "type": self.type,
             "source": {
-                "tableId": str(self.source_table.id),
-                "columnId": str(self.source_column.id)
+                "tableId": str(self.source_table_id),
+                "columnId": str(self.source_column_id)
             },
             "target": {
-                "tableId": str(self.target_table.id),
-                "columnId": str(self.target_column.id)
+                "tableId": str(self.target_table_id),
+                "columnId": str(self.target_column_id)
             }
         }
 
@@ -166,7 +166,7 @@ class TableElement(AbstractElement):
     def to_json(self):
         return {
             'id': str(self.id),
-            'tableId': str(self.table.id),
+            'tableId': str(self.table_id),
             'element': {
                 'collapsed': self.collapsed,
                 'color': self.color,
@@ -194,7 +194,7 @@ class ConnectionElement(UUIDModel):
     def to_json(self):
         return {
             'id': str(self.id),
-            'foreignKeyId': str(self.foreignKey.id),
+            'foreignKeyId': str(self.foreignKey_id),
             'element': {
                 'draw': self.draw
             }
