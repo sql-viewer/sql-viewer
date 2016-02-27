@@ -126,7 +126,7 @@ LOGGING = {
             # to its parent (will send if set to True)
         },
         'django.db': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handers': ['console'],
         },
     },
