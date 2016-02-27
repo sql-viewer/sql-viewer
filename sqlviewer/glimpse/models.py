@@ -30,13 +30,16 @@ class Diagram(UUIDModel):
     model = models.ForeignKey(Model)
 
     def layer_elements(self):
-        return LayerElement.objects.filter(diagram=self)
+        return LayerElement.objects.filter(diagram=self).select_related()
 
     def connection_elements(self):
-        return ConnectionElement.objects.filter(diagram=self)
+        return ConnectionElement.objects.filter(diagram=self).select_related()
 
     def table_elements(self):
-        return TableElement.objects.filter(layer_element__diagram=self)
+        return TableElement.objects.filter(layer_element__diagram=self).select_related()
+
+    def tables(self):
+        return Table.objects.filter(tableelement__layer_element__diagram=self).select_related()
 
     def to_json(self, shallow=False):
         data = {'id': str(self.id),
@@ -45,7 +48,7 @@ class Diagram(UUIDModel):
             data['layers'] = [layer.to_json() for layer in self.layer_elements()]
             data['connections'] = [conn.to_json() for conn in self.connection_elements()]
             data['data'] = {
-                'tables': [tel.table.to_json() for tel in self.table_elements()],
+                'tables': [tab.to_json() for tab in self.tables()],
                 'foreignKeys': [cel.foreignKey.to_json() for cel in self.connection_elements()]
             }
         return data
@@ -57,15 +60,15 @@ class Table(UUIDModel):
     model = models.ForeignKey(Model)
 
     def columns(self):
-        return Column.objects.filter(table=self)
+        return Column.objects.filter(table=self).select_related()
 
-    def to_json(self):
-        return {
-            "id": str(self.id),
-            "name": self.name,
-            "comment": self.comment,
-            "columns": [col.to_json() for col in self.columns()]
-        }
+    def to_json(self, shallow=False):
+        data = {"id": str(self.id),
+                "name": self.name,
+                "comment": self.comment}
+        if not shallow:
+            data["columns"] = [col.to_json() for col in self.columns()]
+        return data
 
 
 class Column(UUIDModel):
@@ -113,12 +116,12 @@ class ForeignKey(UUIDModel):
             "id": str(self.id),
             "type": self.type,
             "source": {
-                "tableId": str(self.source_table.id),
-                "columnId": str(self.source_column.id)
+                "tableId": str(self.source_table_id),
+                "columnId": str(self.source_column_id)
             },
             "target": {
-                "tableId": str(self.target_table.id),
-                "columnId": str(self.target_column.id)
+                "tableId": str(self.target_table_id),
+                "columnId": str(self.target_column_id)
             }
         }
 
@@ -166,7 +169,7 @@ class TableElement(AbstractElement):
     def to_json(self):
         return {
             'id': str(self.id),
-            'tableId': str(self.table.id),
+            'tableId': str(self.table_id),
             'element': {
                 'collapsed': self.collapsed,
                 'color': self.color,
@@ -194,7 +197,7 @@ class ConnectionElement(UUIDModel):
     def to_json(self):
         return {
             'id': str(self.id),
-            'foreignKeyId': str(self.foreignKey.id),
+            'foreignKeyId': str(self.foreignKey_id),
             'element': {
                 'draw': self.draw
             }
