@@ -30,13 +30,13 @@ class Diagram(UUIDModel):
     model = models.ForeignKey(Model)
 
     def layer_elements(self):
-        return LayerElement.objects.filter(diagram=self)
+        return LayerElement.objects.filter(diagram=self).select_related()
 
     def connection_elements(self):
-        return ConnectionElement.objects.filter(diagram=self)
+        return ConnectionElement.objects.filter(diagram=self).select_related()
 
     def table_elements(self):
-        return TableElement.objects.filter(layer_element__diagram=self)
+        return TableElement.objects.filter(layer_element__diagram=self).select_related()
 
     def to_json(self, shallow=False):
         data = {'id': str(self.id),
@@ -57,15 +57,15 @@ class Table(UUIDModel):
     model = models.ForeignKey(Model)
 
     def columns(self):
-        return Column.objects.filter(table=self)
+        return Column.objects.filter(table=self).select_related()
 
-    def to_json(self):
-        return {
-            "id": str(self.id),
-            "name": self.name,
-            "comment": self.comment,
-            "columns": [col.to_json() for col in self.columns()]
-        }
+    def to_json(self, shallow=False):
+        data = {"id": str(self.id),
+                "name": self.name,
+                "comment": self.comment}
+        if not shallow:
+            data["columns"] = [col.to_json() for col in self.columns()]
+        return data
 
 
 class Column(UUIDModel):
